@@ -37,6 +37,10 @@ class CRTMScrapper(scrapy.Spider):
             station['order'] = i
             line['stations'].append(station)
 
+        CRTMScrapper.action_to_perform(line)
+
+    @staticmethod
+    def action_to_perform(line):
         print(line)
 
     @staticmethod
