@@ -43,7 +43,7 @@ class CRTMScrapper(scrapy.Spider):
     @staticmethod
     def action_to_perform(line):
         print(line)
-        csvFile = open("info_lineas.csv", 'w')
+        csvFile = open("info_lineas.csv", 'a')
         writer = csv.writer(csvFile, dialect="excel", lineterminator='\n')
         writer.writerow([line['stations'], line['number'], line['name']])
         csvFile.close()
