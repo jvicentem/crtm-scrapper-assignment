@@ -81,7 +81,7 @@ class CRTMScrapper(scrapy.Spider):
 
     @staticmethod
     def _get_stations_info(response):
-        rows = (response.css('#colCentro > div:nth-child(4) > div:nth-child(1) > table > tbody tr'))
+        rows = (response.css('#colCentro > div:nth-child(4) table > tbody tr'))
 
         stations_objects = []
 
