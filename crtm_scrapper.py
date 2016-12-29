@@ -1,9 +1,14 @@
 import scrapy
 import re
-import csv
+import logging
+import csv_utils
 
 
 class CRTMScrapper(scrapy.Spider):
+    def __init__(self, *args, **kwargs):
+        super(CRTMScrapper, self).__init__(*args, **kwargs)
+        self.csv_file_name = kwargs.get('csv_file_path')
+
     RANDOMIZE_DOWNLOAD_DELAY = True
 
     name = 'CRTM_scrapper_starter'
@@ -14,19 +19,19 @@ class CRTMScrapper(scrapy.Spider):
                   'http://www.crtm.es/tu-transporte-publico/metro-ligero.aspx',
                   'http://www.crtm.es/tu-transporte-publico/cercanias-renfe.aspx']
 
+    scrapped_lines = []
+
     def parse(self, response):
         lines_page_url = CRTMScrapper._get_lines_page_url(response)
         yield scrapy.Request(lines_page_url, self.parse_lines_page)
 
-    @staticmethod
-    def parse_lines_page(response):
+    def parse_lines_page(self, response):
         lines_urls = CRTMScrapper._get_lines_urls(response)
 
         for line in lines_urls:
-            yield scrapy.Request(line, CRTMScrapper.parse_specific_line_page)
+            yield scrapy.Request(line, self.parse_specific_line_page)
 
-    @staticmethod
-    def parse_specific_line_page(response):
+    def parse_specific_line_page(self, response):
         line_name = CRTMScrapper._get_line_name(response)
         line_number = CRTMScrapper._get_line_number(response)
         stations = CRTMScrapper._get_stations_info(response)
@@ -39,15 +44,28 @@ class CRTMScrapper(scrapy.Spider):
             station['order'] = i
             line['stations'].append(station)
 
-        CRTMScrapper._action_to_perform(line)
+        logging.info('%s\'s line %s parsed' % (transport_mode, line_number))
 
-    @staticmethod
-    def _action_to_perform(line):
-        print(line)
-        csv_file = open("info_lineas.csv", 'a')
-        writer = csv.writer(csv_file, dialect="excel", lineterminator='\n')
-        writer.writerow([line['stations'], line['number'], line['name'], line['transport']])
-        csv_file.close()
+        self._action_to_perform(line)
+
+    def _action_to_perform(self, line):
+        self.scrapped_lines.append(line)
+        logging.info('Stations info of line %s stored in memory' % line['number'])
+
+    def closed(self, reason):
+        header = ['transportmean_name', 'line_number', 'order_number', 'station_name']
+
+        rows_to_save = []
+
+        for line in self.scrapped_lines:
+            for station in line['stations']:
+                rows_to_save.append({'transportmean_name': line['transport'],
+                                     'line_number': line['number'],
+                                     'order_number': station['order'],
+                                     'station_name': station['name']
+                                     })
+
+        csv_utils.write_info_in_csv(rows_to_save, header, self.csv_file_name)
 
     @staticmethod
     def _get_lines_page_url(response):
