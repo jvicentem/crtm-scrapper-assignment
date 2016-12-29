@@ -1,5 +1,6 @@
 import scrapy
 import re
+import csv
 
 
 class CRTMScrapper(scrapy.Spider):
@@ -42,6 +43,11 @@ class CRTMScrapper(scrapy.Spider):
     @staticmethod
     def action_to_perform(line):
         print(line)
+        csvFile = open("info_lineas.csv", 'w')
+        writer = csv.writer(csvFile, dialect="excel", lineterminator='\n')
+        writer.writerow([line['stations'], line['number'], line['name']])
+        csvFile.close()
+        
 
     @staticmethod
     def get_lines_page_url(response):
