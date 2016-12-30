@@ -53,7 +53,7 @@ class CRTMScrapper(scrapy.Spider):
         logging.info('Stations info of line %s stored in memory' % line['number'])
 
     def closed(self, reason):
-        header = ['transportmean_name', 'line_number', 'order_number', 'station_name']
+        header = ['transportmean_name', 'line_number', 'order_number', 'station_id']
 
         rows_to_save = []
 
@@ -62,7 +62,7 @@ class CRTMScrapper(scrapy.Spider):
                 rows_to_save.append({'transportmean_name': line['transport'],
                                      'line_number': line['number'],
                                      'order_number': station['order'],
-                                     'station_name': station['name']
+                                     'station_id': station['id']
                                      })
 
         csv_utils.write_info_in_csv(rows_to_save, header, self.csv_file_name)
