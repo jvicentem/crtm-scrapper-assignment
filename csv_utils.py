@@ -4,6 +4,7 @@ import logging
 
 
 def write_info_in_csv(rows, fields, file_name):
+    file_name = "info_trans.csv"
     with open(file_name, 'w+') as csv_file:
         writer = csv.DictWriter(csv_file, dialect="excel", lineterminator='\n', fieldnames=fields)
 
