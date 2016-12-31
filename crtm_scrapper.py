@@ -53,17 +53,38 @@ class CRTMScrapper(scrapy.Spider):
         logging.info('Stations info of line %s stored in memory' % line['number'])
 
     def closed(self, reason):
-        header = ['transportmean_name', 'line_number', 'order_number', 'station_id']
-
         rows_to_save = []
 
+        metro_dict = csv_utils.csv_to_dict('./assets/METRO/stops.txt', '\ufeffstop_id')
+        ml_dict = csv_utils.csv_to_dict('./assets/ML/stops.txt', '\ufeffstop_id')
+        cr_dict = csv_utils.csv_to_dict('./assets/CR/stops.txt', '\ufeffstop_id')
+
+        metro_dict = CRTMScrapper._change_ids(metro_dict)
+        ml_dict = CRTMScrapper._change_ids(ml_dict)
+        cr_dict = CRTMScrapper._change_ids(cr_dict)
+
+        header = (['transportmean_name', 'line_number', 'order_number']
+                  +
+                  csv_utils.csv_field_names('./assets/METRO/stops.txt'))
+
         for line in self.scrapped_lines:
+            if line['transport'] == 'METRO':
+                aux_dict = metro_dict
+            elif line['transport'] == 'ML':
+                aux_dict = ml_dict
+            else:
+                aux_dict = cr_dict
+
             for station in line['stations']:
-                rows_to_save.append({'transportmean_name': line['transport'],
+                if station['id'] in aux_dict:
+                    new_info_dict = {'transportmean_name': line['transport'],
                                      'line_number': line['number'],
-                                     'order_number': station['order'],
-                                     'station_id': station['id']
-                                     })
+                                     'order_number': station['order']
+                                     }
+
+                    all_info = {**new_info_dict, **aux_dict[station['id']]}
+
+                    rows_to_save.append(all_info)
 
         csv_utils.write_info_in_csv(rows_to_save, header, self.csv_file_name)
 
@@ -124,4 +145,18 @@ class CRTMScrapper(scrapy.Spider):
             return 'ML'
         else:
             return 'CR'
+
+    @staticmethod
+    def _change_ids(dictionary):
+        new_dict = {}
+
+        for key, value in dictionary.items():
+            real_id = re.findall('[a-z]{3}_(([4-5]|10)_[0-9a-zA-Z]+)(_[0-9]+)?', key)
+
+            station_id = '' if len(real_id) == 0 or real_id[0][2] != '' else real_id[0][0]
+
+            if station_id:
+                new_dict[station_id] = value
+
+        return new_dict
 

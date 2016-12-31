@@ -2,7 +2,7 @@ from scrapy.crawler import CrawlerProcess
 from crtm_scrapper import CRTMScrapper
 from csv_utils import delete_file_if_exists
 
-CSV_FILE_PATH = 'info_lineas.csv'
+CSV_FILE_PATH = 'info_trans.csv'
 
 
 def main():
