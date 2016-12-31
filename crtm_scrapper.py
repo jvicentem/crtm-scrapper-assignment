@@ -9,8 +9,6 @@ class CRTMScrapper(scrapy.Spider):
         super(CRTMScrapper, self).__init__(*args, **kwargs)
         self.csv_file_name = kwargs.get('csv_file_path')
 
-    RANDOMIZE_DOWNLOAD_DELAY = True
-
     name = 'CRTM_scrapper_starter'
     allowed_domains = ['crtm.es']
     BASE_URL = 'http://www.crtm.es'
