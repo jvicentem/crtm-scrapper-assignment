@@ -23,12 +23,18 @@ class CRTMScrapper(scrapy.Spider):
         lines_page_url = CRTMScrapper._get_lines_page_url(response)
         yield scrapy.Request(lines_page_url, self.parse_lines_page)
 
+    '''
+    Parse pages with lines info (i.e. http://www.crtm.es/tu-transporte-publico/metro/lineas.aspx)
+    '''
     def parse_lines_page(self, response):
         lines_urls = CRTMScrapper._get_lines_urls(response)
 
         for line in lines_urls:
             yield scrapy.Request(line, self.parse_specific_line_page)
 
+    '''
+    Parse a specific line page (i.e. http://www.crtm.es/tu-transporte-publico/metro/lineas/4__1___.aspx)
+    '''
     def parse_specific_line_page(self, response):
         line_name = CRTMScrapper._get_line_name(response)
         line_number = CRTMScrapper._get_line_number(response)
@@ -46,10 +52,20 @@ class CRTMScrapper(scrapy.Spider):
 
         self._action_to_perform(line)
 
+    '''
+    Final actions to execute when the scrapper is about to end
+    '''
     def _action_to_perform(self, line):
         self.scrapped_lines.append(line)
         logging.info('Stations info of line %s stored in memory' % line['number'])
 
+    '''
+    As described in the official Scrappy documentation, this method is called automatically when all the scrappers
+    are finished.
+
+    In this case, it saves the content of scrapped_lines to a csv in gtfs format, now including the order of each
+    station in the line it belongs to.
+    '''
     def closed(self, reason):
         rows_to_save = []
 
@@ -86,6 +102,9 @@ class CRTMScrapper(scrapy.Spider):
 
         csv_utils.write_info_in_csv(rows_to_save, header, self.csv_file_name)
 
+    '''
+    Extracts lines site urls from a transport mean page
+    '''
     @staticmethod
     def _get_lines_page_url(response):
         return (CRTMScrapper.BASE_URL +
@@ -93,11 +112,17 @@ class CRTMScrapper(scrapy.Spider):
                  .xpath('./@href')[0]
                  .extract()))
 
+    '''
+    Extracts lines urls from a lines page
+    '''
     @staticmethod
     def _get_lines_urls(response):
         a_objects = response.css('#colCentro > div.listaBotones> ul > li a')
         return [CRTMScrapper.BASE_URL + link.xpath('./@href')[0].extract() for link in a_objects]
 
+    '''
+    Extracts the name of a line
+    '''
     @staticmethod
     def _get_line_name(response):
         possible_name_1 = response.css('#colCentro > div:nth-child(4) > div:nth-child(1) > h4::text')
@@ -107,6 +132,9 @@ class CRTMScrapper(scrapy.Spider):
 
         return name[0].extract()
 
+    '''
+    Extracts the number of a line
+    '''
     @staticmethod
     def _get_line_number(response):
         possible_number_1 = response.css('#colCentro > div:nth-child(4) > div:nth-child(1) > h4 > span::text')
@@ -116,6 +144,9 @@ class CRTMScrapper(scrapy.Spider):
 
         return number[0].extract()
 
+    '''
+    Extracts id and name of a station/stop
+    '''
     @staticmethod
     def _get_stations_info(response):
         rows = (response.css('#colCentro > div:nth-child(4) table > tbody tr'))
@@ -133,6 +164,9 @@ class CRTMScrapper(scrapy.Spider):
 
         return stations_objects
 
+    '''
+    Given a transport mean name, it returns a kind of abbreviation
+    '''
     @staticmethod
     def _detect_transport_mode(url):
         transport = re.findall('http://www.crtm.es/tu-transporte-publico/([\w-]*)/lineas/.*', url)[0]
@@ -144,6 +178,14 @@ class CRTMScrapper(scrapy.Spider):
         else:
             return 'CR'
 
+    '''
+    In the csv gtfs original file, the ids look like this: par_4_100 or par_4_100_1
+
+    We don't want the substring "par_" nor "... _1" because it doesn't allow us to match the station ids from the website
+    with the stations in the csv gtfs file.
+
+    Therefore, we need to extract the portion of ids that looks like this: 4_100
+    '''
     @staticmethod
     def _change_ids(dictionary):
         new_dict = {}

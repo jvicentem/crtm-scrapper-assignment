@@ -1,6 +1,12 @@
-from rdflib import URIRef, BNode, Literal, Graph
+from rdflib import URIRef, Literal, Graph
 from rdflib.namespace import RDF, FOAF
 import csv
+
+'''
+Parses a csv in gtfs format with crtm public transport info and generates a rdf graph stored in a xml file.
+
+This method takes two arguments: the csv file path and the output xml path.
+'''
 
 
 def crtm_csv_to_rdf(csv_file_path, output_xml_path):
