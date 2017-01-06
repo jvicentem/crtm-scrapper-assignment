@@ -5,10 +5,6 @@ import csv_utils
 
 
 class CRTMScrapper(scrapy.Spider):
-    def __init__(self, *args, **kwargs):
-        super(CRTMScrapper, self).__init__(*args, **kwargs)
-        self.csv_file_name = kwargs.get('csv_file_path')
-
     name = 'CRTM_scrapper_starter'
     allowed_domains = ['crtm.es']
     BASE_URL = 'http://www.crtm.es'
@@ -18,6 +14,10 @@ class CRTMScrapper(scrapy.Spider):
                   'http://www.crtm.es/tu-transporte-publico/cercanias-renfe.aspx']
 
     scrapped_lines = []
+
+    def __init__(self, *args, **kwargs):
+        super(CRTMScrapper, self).__init__(*args, **kwargs)
+        self.csv_file_name = kwargs.get('csv_file_path')
 
     def parse(self, response):
         lines_page_url = CRTMScrapper._get_lines_page_url(response)
