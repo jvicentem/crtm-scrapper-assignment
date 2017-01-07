@@ -44,4 +44,4 @@ for row in csvReader:
     g.add((BNode(row[3]), stop_timezone, Literal(row[13])))
     g.add((BNode(row[3]), wheelchair_boarding, Literal(row[14])))
 
-g.serialize(destination="prueba3.xml", format='xml')
+g.serialize(destination="crtm.xml", format='xml')
