@@ -1,17 +1,19 @@
 from rdflib import URIRef, Literal, Graph, BNode
 import csv
 
-'''
-Parses a csv in gtfs format with crtm public transport info and generates a rdf graph stored in a xml file.
-This method takes two arguments: the csv file path and the output xml path.
-'''
 
-
-csvFile = open("info_trans.csv","r", encoding='latin-1')
+'''
+Parses a csv in gtfs format with crtm public transport info and generates a rdf graph stored in a xml file
+'''
+csvFile = open("info_trans.csv", "r", encoding='latin-1')
 csvReader = csv.reader(csvFile)
 
 g = Graph()
 
+
+'''
+assignates an ontology for every parameter contained in the csv file
+'''
 transportmean_name = URIRef('http://dbpedia.org/ontology/type')
 line_number = URIRef('http://www.daml.org/ontologies/396#line')
 order_number = URIRef('http://dbpedia.org/ontology/order')
@@ -28,6 +30,10 @@ parent_station = URIRef('http://dbpedia.org/ontology/parent')
 stop_timezone = URIRef('http://dbpedia.org/ontology/timezone')
 wheelchair_boarding = URIRef('http://dbpedia.org/ontology/isHandicappedAccessible')
 
+
+'''
+creates the rdf graph with the csv parameters and save the information in a xml file
+''' 
 for row in csvReader:
     g.add((BNode(row[3]), transportmean_name, Literal(row[0])))
     g.add((BNode(row[3]), line_number, Literal(row[1])))
