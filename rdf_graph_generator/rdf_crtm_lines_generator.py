@@ -16,14 +16,24 @@ def crtm_csv_to_rdf(csv_file_path, output_xml_path):
         g = Graph()
 
         for row in reader:
-            specific_transport_uri = 'http://example.org/%s/publicTransport' % row['transportmean_name']
-            transport = URIRef(specific_transport_uri)
+            if row['transportmean_name'] == 'METRO':
+                uri_transport = 'metro'
+                transport_number = 4
+            elif row['transportmean_name'] == 'ML':
+                uri_transport = 'metro-ligero'
+                transport_number = 10
+            else:
+                uri_transport = 'cercanias-renfe'
+                transport_number = 5
+
+            specific_transport_uri = 'http://www.crtm.es/tu-transporte-publico/%s' % uri_transport
+            transport = URIRef(specific_transport_uri + '.aspx')
             transportmean_name = Literal(row['transportmean_name'])
 
-            line = URIRef(specific_transport_uri + '/line')
+            line = URIRef(specific_transport_uri + '/lineas/%d__%d___.aspx' % (transport_number, int(row['stop_code'])))
             line_number = Literal(row['line_number'])
 
-            station = URIRef(specific_transport_uri + '/station')
+            station = URIRef(specific_transport_uri + '/estaciones/%d_%d.aspx' % (transport_number, int(row['stop_code'])))
             stop_id = Literal(row['\ufeffstop_id'])
             stop_code = Literal(row['stop_code'])
             stop_name = Literal(row['stop_name'])
@@ -63,4 +73,3 @@ def crtm_csv_to_rdf(csv_file_path, output_xml_path):
             g.add((line, FOAF.has, station))
 
         g.serialize(destination=output_xml_path, format='xml')
-
