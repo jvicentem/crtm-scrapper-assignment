@@ -16,14 +16,24 @@ def crtm_csv_to_rdf(csv_file_path, output_xml_path):
         g = Graph()
 
         for row in reader:
-            specific_transport_uri = 'http://example.org/%s/publicTransport' % row['transportmean_name']
-            transport = URIRef(specific_transport_uri)
+            if row['transportmean_name'] == 'METRO':
+                uri_transport = 'metro'
+                transport_number = 4
+            elif row['transportmean_name'] == 'ML':
+                uri_transport = 'metro-ligero'
+                transport_number = 10
+            else:
+                uri_transport = 'cercanias-renfe'
+                transport_number = 5
+
+            specific_transport_uri = 'http://www.crtm.es/tu-transporte-publico/%s' % uri_transport
+            transport = URIRef(specific_transport_uri + '.aspx')
             transportmean_name = Literal(row['transportmean_name'])
 
-            line = URIRef(specific_transport_uri + '/line')
+            line = URIRef(specific_transport_uri + '/lineas/%d__%d___.aspx' % (transport_number, int(row['stop_code'])))
             line_number = Literal(row['line_number'])
 
-            station = URIRef(specific_transport_uri + '/station')
+            station = URIRef(specific_transport_uri + '/estaciones/%d_%d.aspx' % (transport_number, int(row['stop_code'])))
             stop_id = Literal(row['\ufeffstop_id'])
             stop_code = Literal(row['stop_code'])
             stop_name = Literal(row['stop_name'])
@@ -38,29 +48,44 @@ def crtm_csv_to_rdf(csv_file_path, output_xml_path):
             stop_timezone = Literal(row['stop_timezone'])
             wheelchair_boarding = Literal(row['wheelchair_boarding'])
 
-            g.add((transport, RDF.type, FOAF.PublicTransport))
-            g.add((transport, FOAF.name, transportmean_name))
-            g.add((transport, FOAF.has, line))
+            # a transport mean has a name
+            g.add((transport, URIRef('http://dbpedia.org/ontology/name'), transportmean_name))
+            # a transport mean has lines
+            g.add((transport, URIRef(specific_transport_uri + '/lineas.aspx'), line))
 
-            g.add((line, RDF.type, FOAF.Line))
-            g.add((line, FOAF.line_number, line_number))
+            # a transport mean line has a number
+            g.add((line, URIRef('http://dbpedia.org/ontology/RailwayLine'), line_number))
 
-            g.add((station, RDF.type, FOAF.Station))
-            g.add((station, FOAF.id, stop_id))
-            g.add((station, FOAF.code, stop_code))
-            g.add((station, FOAF.name, stop_name))
-            g.add((station, FOAF.order, order_number))
-            g.add((station, FOAF.descr, stop_desc))
-            g.add((station, FOAF.lat, stop_lat))
-            g.add((station, FOAF.lon, stop_lon))
-            g.add((station, FOAF.zone, zone_id))
-            g.add((station, FOAF.url, stop_url))
-            g.add((station, FOAF.location, location_type))
-            g.add((station, FOAF.parent, parent_station))
-            g.add((station, FOAF.timezone, stop_timezone))
-            g.add((station, FOAF.wheelchair, wheelchair_boarding))
+            # a stop/station has an id
+            g.add((station, URIRef('http://dbpedia.org/ontology/id'), stop_id))
+            # a stop/station has a code
+            g.add((station, URIRef('http://dbpedia.org/ontology/code'), stop_code))
+            # a stop/station has a name
+            g.add((station, URIRef('http://dbpedia.org/ontology/name'), stop_name))
+            # a stop/station has an order in the line/s it belongs to
+            g.add((station, URIRef('http://dbpedia.org/ontology/order'), order_number))
+            # a stop/station has an address
+            g.add((station,  URIRef('http://dbpedia.org/ontology/address'), stop_desc))
+            # a stop/station has a location latitude
+            g.add((station, URIRef('http://www.w3.org/2003/01/geo/wgs84_pos#lat'), stop_lat))
+            # a stop/station has a location longitude
+            g.add((station, URIRef('http://www.w3.org/2003/01/geo/wgs84_pos#lon'), stop_lon))
+            # a stop/station has a zone id
+            g.add((station, URIRef('http://dbpedia.org/ontology/location'), zone_id))
+            # a stop/station has an url
+            g.add((station, URIRef('http://www.daml.org/ontologies/396#homepage'), stop_url))
+            # a stop/station has location type
+            g.add((station,
+                   URIRef('http://www.ontologydesignpatterns.org/ont/op/openpolis.owl#location_type'),
+                   location_type))
+            # a stop/station has a parent station
+            g.add((station, URIRef('http://dbpedia.org/ontology/parent'), parent_station))
+            # a stop/station has a timezone
+            g.add((station, URIRef('http://dbpedia.org/ontology/timezone'), stop_timezone))
+            # a stop/station has wheelchair accessibility
+            g.add((station, URIRef('http://dbpedia.org/ontology/isHandicappedAccessible'), wheelchair_boarding))
 
-            g.add((line, FOAF.has, station))
+            # a transport mean line has stations
+            g.add((line, URIRef(specific_transport_uri + '/estaciones.aspx'), station))
 
         g.serialize(destination=output_xml_path, format='xml')
-
