@@ -69,9 +69,9 @@ class CRTMScrapper(scrapy.Spider):
     def closed(self, reason):
         rows_to_save = []
 
-        metro_dict = csv_utils.csv_to_dict('../assets/METRO/stops.txt', '\ufeffstop_id')
-        ml_dict = csv_utils.csv_to_dict('../assets/ML/stops.txt', '\ufeffstop_id')
-        cr_dict = csv_utils.csv_to_dict('../assets/CR/stops.txt', '\ufeffstop_id')
+        metro_dict = csv_utils.csv_to_dict('../assets/METRO/stops.txt', 'stop_id')
+        ml_dict = csv_utils.csv_to_dict('../assets/ML/stops.txt', 'stop_id')
+        cr_dict = csv_utils.csv_to_dict('../assets/CR/stops.txt', 'stop_id')
 
         metro_dict = CRTMScrapper._change_ids(metro_dict)
         ml_dict = CRTMScrapper._change_ids(ml_dict)

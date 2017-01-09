@@ -1,7 +1,8 @@
 import rdf_crtm_lines_generator as rdf
+import os
 
-CSV_FILE_PATH = '../scrapper/info_trans.csv'
-RDF_XML_PATH = './crtm-rdf-graph.xml'
+CSV_FILE_PATH = '..' + os.sep + 'scrapper' + os.sep + 'info_trans.csv'
+RDF_XML_PATH = '.' + os.sep + 'crtm-rdf-graph.xml'
 
 
 def main():
