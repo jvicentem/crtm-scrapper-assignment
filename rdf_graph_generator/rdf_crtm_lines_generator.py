@@ -30,7 +30,7 @@ def crtm_csv_to_rdf(csv_file_path, output_xml_path):
             transport = URIRef(specific_transport_uri + '.aspx')
             transportmean_name = Literal(row['transportmean_name'])
 
-            line = URIRef(specific_transport_uri + '/lineas/%d__%d___.aspx' % (transport_number, int(row['stop_code'])))
+            line = URIRef(specific_transport_uri + '/lineas/%d__%s___.aspx' % (transport_number, row['line_number']))
             line_number = Literal(row['line_number'])
 
             station = URIRef(specific_transport_uri + '/estaciones/%d_%d.aspx' % (transport_number, int(row['stop_code'])))
@@ -86,7 +86,7 @@ def crtm_csv_to_rdf(csv_file_path, output_xml_path):
             g.add((station, URIRef('http://dbpedia.org/ontology/isHandicappedAccessible'), wheelchair_boarding))
 
             # a transport mean line has stations
-            g.add((line, URIRef(specific_transport_uri + '/estaciones.aspx'), station))
+            g.add((line, URIRef(specific_transport_uri), station))
 
         g.serialize(destination=output_xml_path, format='xml')
 
